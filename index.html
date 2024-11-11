@@ -339,12 +339,27 @@
             customMessage.textContent = `Terima kasih ${name}! Kita resmi pacaran sekarang! 💑`;
         });
 
-        // Fungsi untuk menyimpan jawaban
-        function saveAnswer(answer) {
-            answers.push(answer);
-            localStorage.setItem('proposal_answers', JSON.stringify(answers));
-            updateStats();
-        }
+       // Contoh menggunakan Firebase Realtime Database
+const firebaseConfig = {
+  // konfigurasi Firebase Anda
+};
+
+// Inisialisasi Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// Fungsi menyimpan jawaban
+function saveAnswer(answer) {
+    database.ref('answers').push(answer);
+}
+
+// Fungsi membaca jawaban
+function getAnswers() {
+    database.ref('answers').on('value', (snapshot) => {
+        const answers = snapshot.val();
+        updateStats(answers);
+    });
+}
 
         // Fungsi untuk mengupdate statistik
         function updateStats() {
