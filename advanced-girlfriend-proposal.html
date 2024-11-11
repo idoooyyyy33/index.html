@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will You Be My Girlfriend?</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .love-message {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            max-width: 80%;
+            margin: 0 auto 20px;
+            display: none;
+        }
+        
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        #yesBtn {
+            background: #4CAF50;
+            color: white;
+            animation: glow 2s infinite;
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #4CAF50; }
+            50% { box-shadow: 0 0 20px #4CAF50; }
+            100% { box-shadow: 0 0 5px #4CAF50; }
+        }
+        
+        #yesBtn:hover {
+            transform: scale(1.1);
+            background: #45a049;
+        }
+        
+        #noBtn {
+            background: #ff4444;
+            color: white;
+            position: absolute;
+        }
+        
+        .hearts {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+        }
+        
+        .heart {
+            position: absolute;
+            animation: fall 3s linear forwards;
+        }
+
+        #resultModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            min-width: 300px;
+        }
+
+        #resultModal h2 {
+            color: #ff1493;
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .result-content {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #adminPanel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        #adminBtn {
+            background: rgba(51, 51, 51, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #closeModal {
+            background: #333;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .name-input {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .name-input input {
+            padding: 10px;
+            border: 2px solid #ff69b4;
+            border-radius: 5px;
+            font-size: 1em;
+            width: 200px;
+            margin: 10px 0;
+        }
+
+        .custom-message {
+            display: none;
+            color: white;
+            font-size: 1.5em;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .result-stats {
+            background: #fff3f7;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .loading:after {
+            content: '❤️';
+            animation: loading 1s infinite;
+        }
+
+        @keyframes loading {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        .floating-hearts {
+            position: absolute;
+            font-size: 20px;
+            animation: float 6s infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="backgroundHearts"></div>
+    <div class="hearts" id="hearts"></div>
+    
+    <div class="container">
+        <div class="name-input" id="nameInput">
+            <input type="text" id="recipientName" placeholder="Ketik nama kamu..." required>
+            <button onclick="startProposal()">Mulai ❤️</button>
+        </div>
+
+        <div id="proposalContent" style="display: none;">
+            <h1>Will You Be My Girlfriend? 💕</h1>
+            <div class="love-message" id="loveMessage"></div>
+            <div class="buttons">
+                <button id="yesBtn">Yes</button>
+                <button id="noBtn">No</button>
+            </div>
+            <div class="loading" id="loading">Loading</div>
+            <div class="custom-message" id="customMessage"></div>
+        </div>
+    </div>
+
+    <div id="resultModal">
+        <h2>💘 Hasil Jawaban 💘</h2>
+        <div class="result-content">
+            <div class="result-item">
+                <strong>Nama:</strong> <span id="answerName"></span>
+            </div>
+            <div class="result-item">
+                <strong>Status:</strong> <span id="answerStatus"></span>
+            </div>
+            <div class="result-item">
+                <strong>Waktu Menjawab:</strong> <span id="answerTime"></span>
+            </div>
+            <div class="result-stats">
+                <h3>Statistik:</h3>
+                <p>Total yang menjawab: <span id="totalAnswers">0</span></p>
+                <p>Yang menjawab "Yes": <span id="totalYes">0</span></p>
+            </div>
+        </div>
+        <button id="closeModal">Tutup</button>
+        <button id="resetStats" style="margin-top: 10px; background: #ff4444;">Reset Statistik</button>
+    </div>
+
+    <div id="adminPanel">
+        <button id="adminBtn">📊 Lihat Hasil</button>
+    </div>
+
+    <script>
+        // Inisialisasi variabel
+        let answers = JSON.parse(localStorage.getItem('proposal_answers')) || [];
+        const messages = [
+            "Kamu adalah bintang yang menerangi hariku ⭐",
+            "Setiap detik bersamamu terasa begitu berharga 💝",
+            "Izinkan aku menjadi pelindung hatimu 💖",
+            "Bersamamu, semuanya terasa lebih indah 🌹"
+        ];
+
+        // Fungsi untuk memulai proposal
+        function startProposal() {
+            const name = document.getElementById('recipientName').value.trim();
+            if (name) {
+                document.getElementById('nameInput').style.display = 'none';
+                document.getElementById('proposalContent').style.display = 'block';
+                displayRandomMessage();
+                createFloatingHearts();
+            } else {
+                alert('Tolong isi namamu dulu ya! 😊');
+            }
+        }
+
+        // Fungsi untuk menampilkan pesan cinta acak
+        function displayRandomMessage() {
+            const loveMessage = document.getElementById('loveMessage');
+            loveMessage.style.display = 'block';
+            loveMessage.innerHTML = messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        // Fungsi untuk membuat efek hati mengambang
+        function createFloatingHearts() {
+            const container = document.getElementById('backgroundHearts');
+            for (let i = 0; i < 10; i++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤️';
+                heart.className = 'floating-hearts';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('noBtn').addEventListener('mouseover', function() {
+            const x = Math.random() * (window.innerWidth - this.offsetWidth);
+            const y = Math.random() * (window.innerHeight - this.offsetHeight);
+            this.style.left = x + 'px';
+            this.style.top = y + 'px';
+        });
+
+        document.getElementById('yesBtn').addEventListener('click', function() {
+            const name = document.getElementById('recipientName').value;
+            const answer = {
+                name: name,
+                response: 'Yes',
+                time: new Date().toLocaleString()
+            };
+            saveAnswer(answer);
+            
+            document.getElementById('hearts').style.display = 'block';
+            createHearts();
+            document.querySelector('h1').textContent = `${name}, I Love You! ❤️`;
+            document.getElementById('noBtn').style.display = 'none';
+            document.getElementById('yesBtn').style.display = 'none';
+            
+            const customMessage = document.getElementById('customMessage');
+            customMessage.style.display = 'block';
+            customMessage.textContent = `Terima kasih ${name}! Kita resmi pacaran sekarang! 💑`;
+        });
+
+        // Fungsi untuk menyimpan jawaban
+        function saveAnswer(answer) {
+            answers.push(answer);
+            localStorage.setItem('proposal_answers', JSON.stringify(answers));
+            updateStats();
+        }
+
+        // Fungsi untuk mengupdate statistik
+        function updateStats() {
+            const totalAnswers = answers.length;
+            const totalYes = answers.filter(a => a.response === 'Yes').length;
+            
+            document.getElementById('totalAnswers').textContent = totalAnswers;
+            document.getElementById('totalYes').textContent = totalYes;
+        }
+
+        // Event listener untuk tombol admin
+        document.getElementById('adminBtn').addEventListener('click', function() {
+            const password = prompt("Masukkan password untuk melihat hasil:");
+            if (password === "admin123") {
+                showResults();
+            } else {
+                alert("Password salah!");
+            }
+        });
+
+        // Fungsi untuk menampilkan hasil
+        function showResults() {
+            const latestAnswer = answers[answers.length - 1] || {
+                name: '-',
+                response: 'Belum ada jawaban',
+                time: '-'
+            };
+            
+            document.getElementById('answerName').textContent = latestAnswer.name;
+            document.getElementById('answerStatus').textContent = latestAnswer.response;
+            document.getElementById('answerTime').textContent = latestAnswer.time;
+            updateStats();
+            
+            document.getElementById('resultModal').style.display = 'block';
+        }
+
+        // Event listener untuk tombol tutup modal
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('resultModal').style.display = 'none';
+        });
+
+        // Event listener untuk tombol reset statistik
+        document.getElementById('resetStats').addEventListener('click', function() {
+            if (confirm('Yakin ingin mereset semua statistik?')) {
+                answers = [];
+                localStorage.setItem('proposal_answers', JSON.stringify(answers));
+                updateStats();
+                alert('Statistik telah direset!');
+            }
+        });
+
+        // Fungsi untuk membuat efek hujan hati
+        function createHearts() {
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.innerHTML = '❤️';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.fontSize = Math.random() * (30 - 10) + 10 + 'px';
+                document.getElementById('hearts').appendChild(heart);
+                
+                setTimeout(() => {
+                    heart.remove();
+                }, 3000);
+            }, 100);
+        }
+
+        // Update statistik saat halaman dimuat
+        updateStats();
+    </script>
+</body>
+</html>
